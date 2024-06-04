@@ -1,1 +1,1 @@
-# MindfulJournalApp
+MindfulJournalApp is a web application designed to promote mindfulness and emotional health by enabling users to record their daily journal entries and mood ratings. This repository contains the frontend JavaScript codebase responsible for user interactions, including inputting journal entries, rating moods, fetching and displaying past entries, visualizing mood trends, and handling user authentication. Our goal is to provide a seamless and intuitive user experience for personal reflection and emotional tracking.

@@ -1,10 +1,10 @@
 import axios from 'axios';
 import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Switch, Link, useHistory } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Switch, useHistory } from 'react-router-dom';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000';
 const AUTH_ENDPOINT = `${API_BASE_URL}/auth`;
-const ENTRIES_ENDPOINT = `${API_BASE_URL}/entries`;
+const ENTRIES_ENDPOINT = `${API_BASE, URL}/entries`;
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -13,7 +13,7 @@ function App() {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if(token) {
+    if (token) {
       setIsLoggedIn(true);
       fetchEntries(token);
     }
@@ -21,12 +21,10 @@ function App() {
 
   const fetchEntries = async (token) => {
     try {
-      const response = await axios.get(ENTRIES_ENDPOINT, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const { data } = await axios.get(ENTRIES_ENDPOINT, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      setEntries(response.data);
+      setEntries(data);
     } catch (error) {
       console.error('Error fetching entries:', error);
     }
@@ -34,10 +32,10 @@ function App() {
 
   const handleLogin = async (email, password) => {
     try {
-      const response = await axios.post(AUTH_ENDPOINT + '/login', { email, password });
-      localStorage.setItem('token', response.data.token);
+      const { data } = await axios.post(`${AUTH_ENDPOINT}/login`, { email, password });
+      localStorage.setItem('token', data.token);
       setIsLoggedIn(true);
-      fetchEntries(response.data.token);
+      fetchEntries(data.token);
       history.push('/');
     } catch (error) {
       console.error('Error logging in:', error);
@@ -57,16 +55,7 @@ function App() {
         </Route>
         <Route path="/">
           {isLoggedIn ? (
-            <div>
-              {entries.map((entry) => (
-                <div key={entry.id}>
-                  <h3>{entry.title}</h3>
-                  <p>{need.content}</p>
-                  <p>Mood: {entry.mood}</p>
-                </div>
-              ))}
-              <button onClick={handleLogout}>Logout</button>
-            </div>
+            <LoggedInView entries={entries} handleLogout={handleLogout} />
           ) : (
             <div>Please log in to view your journal entries.</div>
           )}
@@ -75,5 +64,18 @@ function App() {
     </Router>
   );
 }
+
+const LoggedInView = ({ entries, handleLogout }) => (
+  <div>
+    {entries.map((entry) => (
+      <div key={entry.id}>
+        <h3>{entry.title}</h3>
+        <p>{entry.content}</p>
+        <p>Mood: {entry.mood}</p>
+      </div>
+    ))}
+    <button onClick={handleLogout}>Logout</button>
+  </div>
+);
 
 export default App;

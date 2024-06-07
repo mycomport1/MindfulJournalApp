@@ -9,65 +9,65 @@ app.use(bodyParser.json());
 
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB Connected'))
-  .catch(err => console.log(err));
+  .catch(err => console.error('MongoDB Connection Error:', err));
 
 const JournalEntrySchema = new mongoose.Schema({
   userId: String,
   title: String,
   content: String,
-  date: { type: Date, default: Date.now },
-  mood: Number,
+  entryDate: { type: Date, default: Date.now },
+  moodScore: Number,
 });
 
 const UserSchema = new mongoose.Schema({
   username: String,
   email: String,
-  password: String, 
+  password: String,
 });
 
-const JournalEntry = mongoose.model('JournalEntry', JournalEntrySchema);
-const User = mongoose.model('User', UserSchema);
+const JournalEntryModel = mongoose.model('JournalEntry', JournalEntrySchema);
+const UserModel = mongoose.model('User', UserSchema);
 
 app.get('/journal-entries', async (req, res) => {
   try {
-    const entries = await JournalEntry.find();
-    res.json(entries);
+    const journalEntries = await JournalEntryModel.find();
+    res.json(journalEntries);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).send('Internal Server Error: Unable to fetch journal entries.');
   }
 });
 
 app.post('/journal-entries', async (req, res) => {
-  const newEntry = new JournalEntry(req.body);
+  const newJournalEntry = new JournalEntryModel(req.body);
   try {
-    const savedEntry = await newEntry.save();
-    res.status(201).json(savedEntry);
+    const savedJournalEntry = await newJournalEntry.save();
+    res.status(201).json(savedJournalEntry);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).send('Internal Server Error: Failed to save new journal entry.');
   }
 });
 
 app.get('/users', async (req, res) => {
   try {
-    const users = await User.find();
-    res.json(users);
+    const userList = await UserModel.find();
+    res.json(userList);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).send('Internal Server Error: Unable to fetch users.');
   }
 });
 
 app.post('/users', async (req, res) => {
-  const newUser = new User(req.body);
+  const newUser = new UserModel(req.body);
   try {
     const savedUser = await newUser.save();
     res.status(201).json(savedUser);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).send('Internal Server Error: Failed to create new user.');
   }
 });
 
 app.use('*', (req, res) => {
-  res.status(404).send('404 Not Found');
+  res.status(404).send('404 Not Found: The requested resource could not be found.');
 });
 
 const PORT = process.env.PORT || 3000;

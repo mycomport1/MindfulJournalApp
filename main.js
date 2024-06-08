@@ -3,48 +3,48 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Switch, useHistory } from 'react-router-dom';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000';
-const AUTH_ENDPOINT = `${API_BASE_URL}/auth`;
-const ENTRIES_ENDPOINT = `${API_BASE, URL}/entries`;
+const AUTHENTICATION_ENDPOINT = `${API_BASE_URL}/auth`;
+const JOURNAL_ENTRIES_ENDPOINT = `${API_BASE_URL}/entries`;
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [entries, setEntries] = useState([]);
+  const [userAuthenticated, setUserAuthenticated] = useState(false);
+  const [journalEntries, setJournalEntries] = useState([]);
   const history = useHistory();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      setIsLoggedIn(true);
-      fetchEntries(token);
+    const authToken = localStorage.getItem('token');
+    if (authToken) {
+      setUserAuthenticated(true);
+      loadJournalEntries(authToken);
     }
   }, []);
 
-  const fetchEntries = async (token) => {
+  const loadJournalEntries = async (authToken) => {
     try {
-      const { data } = await axios.get(ENTRIES_ENDPOINT, {
-        headers: { Authorization: `Bearer ${token}` },
+      const { data } = await axios.get(JOURNAL_ENTRIES_ENDPOINT, {
+        headers: { Authorization: `Bearer ${authToken}` },
       });
-      setEntries(data);
+      setJournalEntries(data);
     } catch (error) {
-      console.error('Error fetching entries:', error);
+      console.error('Error loading journal entries:', error);
     }
   };
 
-  const handleLogin = async (email, password) => {
+  const authenticateUser = async (email, password) => {
     try {
-      const { data } = await axios.post(`${AUTH_ENDPOINT}/login`, { email, password });
+      const { data } = await axios.post(`${AUTHENTICATION_ENDPOINT}/login`, { email, password });
       localStorage.setItem('token', data.token);
-      setIsLoggedIn(true);
-      fetchEntries(data.token);
+      setUserAuthenticated(true);
+      loadJournalEntries(data.token);
       history.push('/');
     } catch (error) {
-      console.error('Error logging in:', error);
+      console.error('Error authenticating user:', error);
     }
   };
 
-  const handleLogout = () => {
+  const logOutUser = () => {
     localStorage.removeItem('token');
-    setIsLoggedIn(false);
+    setUserAuthenticated(false);
     history.push('/login');
   };
 
@@ -52,10 +52,11 @@ function App() {
     <Router>
       <Switch>
         <Route path="/login">
+          <div>{/* Login Component could go here */}</div>
         </Route>
         <Route path="/">
-          {isLoggedIn ? (
-            <LoggedInView entries={entries} handleLogout={handleLogout} />
+          {userAuthenticated ? (
+            <JournalEntriesView entries={journalEntries} handleLogout={logOutUser} />
           ) : (
             <div>Please log in to view your journal entries.</div>
           )}
@@ -65,7 +66,7 @@ function App() {
   );
 }
 
-const LoggedInView = ({ entries, handleLogout }) => (
+const JournalEntriesView = ({ entries, handleLogout }) => (
   <div>
     {entries.map((entry) => (
       <div key={entry.id}>

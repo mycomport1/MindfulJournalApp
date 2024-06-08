@@ -28,6 +28,27 @@ const UserSchema = new mongoose.Schema({
 const JournalEntryModel = mongoose.model('JournalEntry', JournalEntrySchema);
 const UserModel = mongoose.model('User', UserSchema);
 
+// Cache Wrapper
+function cacheFunction(fn) {
+  const cache = {};
+  return async function(...args) {
+    const key = JSON.stringify(args);
+    if (!cache[key]) {
+      cache[key] = await fn.apply(this, args);
+    }
+    return cache[key];
+  };
+}
+
+// Example function to use with caching (hypothetical)
+async function calculateMoodScoreAnalysis(userId) {
+  // Simulate a heavy operation
+  console.log(`Calculating mood score for user: ${userId}`);
+  return { userId, analysis: "Positive" }; // Example result
+}
+
+const cachedMoodScoreAnalysis = cacheFunction(calculateMoodScoreAnalysis);
+
 app.get('/journal-entries', async (req, res) => {
   try {
     const journalEntries = await JournalEntryModel.find();

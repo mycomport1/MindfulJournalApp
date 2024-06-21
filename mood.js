@@ -26,12 +26,11 @@ const addMoodRating = async (rating) => {
     try {
         log('Adding new mood rating...');
         const collection = await connectDB();
-        const result = await collection.insertOne(rating);
+        const result = await collection.insertOne(random);
         log('Mood rating added successfully.');
     } catch (err) {
         log(`An error occurred while adding mood rating: ${err.message}`);
-        // More detailed error handling can go here if needed
-        throw err; // To make sure the error is propagated up and can be handled or logged by upstream processes or error logging systems
+        throw err;
     } finally {
         await client.close();
         log('Database connection closed.');
@@ -41,7 +40,7 @@ const addMoodRating = async (rating) => {
 const getMoodData = async () => {
     try {
         log('Fetching mood data...');
-        const collection = await connectPG();
+        const collection = await connectDB();
         const moodData = await collection.find({}).toArray();
         log('Mood data fetched successfully.');
         return moodData;
@@ -70,8 +69,32 @@ const analyzeMoodTrends = async () => {
     }
 };
 
+const getMoodRatingsByUserAndDate = async (userId, startDate, endDate) => {
+    try {
+        log('Fetching mood ratings for a user within a date range...');
+        const collection = await connectDB();
+        const query = {
+            userId: userId,
+            date: {
+                $gte: new Date(startDate),
+                $lte: new Date(endDate)
+            }
+        };
+        const ratings = await collection.find(query).toArray();
+        log('Mood ratings fetched successfully.');
+        return ratings;
+    } catch (err) {
+        log(`An error occurred while fetching mood ratings: ${err.message}`);
+        throw err;
+    } finally {
+        await client.close();
+        log('Database connection closed.');
+    }
+};
+
 module.exports = {
     addMoodRating,
     getMoodData,
-    analyzeMoodTrends
+    analyzeMoodTrends,
+    getMoodRatingsByUserAndDate // Export the new function
 };

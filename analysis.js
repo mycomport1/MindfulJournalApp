@@ -2,74 +2,74 @@ require('dotenv').config();
 const fs = require('fs');
 const moment = require('moment');
 
-const ENTRIES_FILE_PATH = process.env.ENTRIES_FILE_PATH || './journalEntries.json';
+const JOURNAL_ENTRIES_FILE_PATH = process.env.ENTRIES_FILE_PATH || './journalEntries.json';
 
-function loadJournalEntries() {
+function readJournalEntriesFromFile() {
   try {
-    const data = fs.readFileSync(ENTRIES_FILE_PATH);
-    return JSON.parse(data);
+    const fileData = fs.readFileSync(JOURNAL_ENTRIES_FILE_PATH);
+    return JSON.parse(fileData);
   } catch (error) {
     console.error('Error loading journal entries:', error);
     return [];
   }
 }
 
-function analyzeMoodData(entries) {
-  const moodCounts = entries.reduce((acc, entry) => {
-    if (acc[entry.mood]) {
-      acc[entry.mood]++;
+function tallyMoodsFromEntries(entries) {
+  const moodTally = entries.reduce((accumulator, currentEntry) => {
+    if (accumulator[currentEntry.mood]) {
+      accumulator[currentEntry.mood]++;
     } else {
-      acc[entry.mood] = 1;
+      accumulator[currentEntry.mood] = 1;
     }
-    return acc;
+    return accumulator;
   }, {});
 
-  const sortedMoods = Object.entries(moodCounts).sort((a, b) => b[1] - a[1]);
+  const moodsSortedByCount = Object.entries(moodTally).sort((firstMood, secondMood) => secondMood[1] - firstMood[1]);
 
-  return sortedMoods;
+  return moodsSortedByCount;
 }
 
-function generateMonthlyReport(entries, month, year) {
-  const filteredEntries = entries.filter(entry => {
+function createMonthlyMoodReport(entries, month, year) {
+  const monthSpecificEntries = entries.filter(entry => {
     const entryDate = moment(entry.date, "YYYY-MM-DD");
     return entryDate.month() === month - 1 && entryDate.year() === year;
   });
 
-  const moodAnalysis = analyzeMoodData(filteredEntries);
+  const moodReport = tallyMoodsFromEntries(monthSpecificEntries);
 
   return {
     month,
     year,
-    totalEntries: filteredEntries.length,
-    moodAnalysis
+    totalEntries: monthSpecificEntries.length,
+    moodReport
   };
 }
 
-function provideInsights(entries) {
-  const insights = {};
+function generateYearlyMoodInsights(entries) {
+  const yearlyInsights = {};
 
   entries.forEach(entry => {
-    const year = moment(entry.date, "YYYY-MM-DD").year();
-    if (!insights[year]) insights[year] = [];
+    const entryYear = moment(entry.date, "YYYY-MM-DD").year();
+    if (!yearlyInsights[entryYear]) yearlyInsights[entryYear] = [];
 
-    insights[year].push(entry);
+    yearlyInsights[entryYear].push(entry);
   });
 
-  Object.keys(insights).forEach(year => {
-    insights[year] = analyzeMoodData(insights[year]);
+  Object.keys(yearlyInsights).forEach(year => {
+    yearlyInsights[year] = tallyMoodsFromEntries(yearlyInsights[year]);
   });
 
-  return insights;
+  return yearlyInsights;
 }
 
-async function main() {
-  const journalEntries = loadJournalEntries();
+async function runJournalAnalysis() {
+  const journalEntries = readJournalEntriesFromFile();
   
-  const monthlyReport = generateMonthlyReport(journalEntries, 3, 2023);
-  console.log("Monthly Report for March 2023:", monthlyReport);
+  const march2023Report = createMonthlyMoodReport(journalEntries, 3, 2023);
+  console.log("Monthly Mood Report for March 2023:", march2023Report);
 
-  const mentalHealthInsights = provideInsights(journalEntries);
-  console.log("Mental Health Trends:", mentalHealthInsights);
+  const moodTrendInsights = generateYearlyMoodInsights(journalEntries);
+  console.log("Mood Trends Insights Over the Years:", moodTrendInsights);
 }
 
-main().catch(console.error);
+runJournalAnalysis().catch(console.error);

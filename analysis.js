@@ -1,12 +1,12 @@
 require('dotenv').config();
-const fs = require('fs');
+const fs = require('fs').promises;
 const moment = require('moment');
 
 const JOURNAL_ENTRIES_FILE_PATH = process.env.ENTRIES_FILE_PATH || './journalEntries.json';
 
-function readJournalEntriesFromFile() {
+async function readJournalEntriesFromFile() {
   try {
-    const fileData = fs.readFileSync(JOURNAL_ENTRIES_FILE_PATH);
+    const fileData = await fs.readFile(JOURNAL_ENTRIES_FILE_PATH);
     return JSON.parse(fileData);
   } catch (error) {
     console.error('Error loading journal entries:', error);
@@ -16,17 +16,12 @@ function readJournalEntriesFromFile() {
 
 function tallyMoodsFromEntries(entries) {
   const moodTally = entries.reduce((accumulator, currentEntry) => {
-    if (accumulator[currentEntry.mood]) {
-      accumulator[currentEntry.mood]++;
-    } else {
-      accumulator[currentEntry.mood] = 1;
-    }
+    const { mood } = currentEntry;
+    accumulator[mood] = (accumulator[mood] || 0) + 1;
     return accumulator;
   }, {});
 
-  const moodsSortedByCount = Object.entries(moodTally).sort((firstMood, secondMood) => secondMood[1] - firstMood[1]);
-
-  return moodsSortedByCount;
+  return Object.entries(moodTally).sort((a, b) => b[1] - a[1]);
 }
 
 function createMonthlyMoodReport(entries, month, year) {
@@ -63,13 +58,17 @@ function generateYearlyMoodInsights(entries) {
 }
 
 async function runJournalAnalysis() {
-  const journalEntries = readJournalEntriesFromFile();
-  
-  const march2023Report = createMonthlyMoodReport(journalEntries, 3, 2023);
-  console.log("Monthly Mood Report for March 2023:", march2023Report);
+  try {
+    const journalEntries = await readJournalEntriesFromFile();
 
-  const moodTrendInsights = generateYearlyMoodInsights(journalEntries);
-  console.log("Mood Trends Insights Over the Years:", moodTrendInsights);
+    const march2023Report = createMonthlyMoodReport(journalEntries, 3, 2023);
+    console.log("Monthly Mood Report for March 2023:", march2023Report);
+
+    const moodTrendInsights = generateYearlyMoodInsights(journalEntries);
+    console.log("Mood Trends Insights Over the Years:", moodTrendInsights);
+  } catch (error) {
+    console.error(error);
+  }
 }
 
-runJournalAnalysis().catch(console.error);
+runJournalAnalysis();

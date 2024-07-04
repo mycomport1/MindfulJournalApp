@@ -1,24 +1,24 @@
 require('dotenv').config();
 const nodemailer = require('nodemailer');
-const emailHost = process.env.EMAIL_HOST;
-const emailPort = process.env.EMAIL_PORT;
-const emailUser = process.env.EMAIL_USER;
-const emailPass = process.env.EMAIL_PASS;
+
+const { EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASS } = process.env;
+
 const transporter = nodemailer.createTransport({
-  host: emailHost,
-  port: emailPort,
-  secure: false, // true for 465, false for other ports
+  host: EMAIL_HOST,
+  port: EMAIL_PORT,
+  secure: false,
   auth: {
-    user: emailUser,
-    pass: emailPass,
+    user: EMAIL_USER,
+    pass: EMAIL_PASS,
   },
 });
+
 const sendEmailNotification = async (to, subject, text) => {
   const mailOptions = {
-    from: `"MindfulJournalApp" <${emailUser}>`, // sender address
-    to, // list of receivers
-    subject, // Subject line
-    text, // plain text body
+    from: `"MindfulJournalApp" <${EMAIL_USER}>`,
+    to,
+    subject,
+    text,
   };
   try {
     await transporter.sendMail(mailOptions);
@@ -27,20 +27,23 @@ const sendEmailNotification = async (to, subject, text) => {
     console.error('Error sending email:', error);
   }
 };
-const sendJournalReminder = (userEmail) => {
+
+const sendJournalReminder = userEmail => {
   sendEmailNotification(
     userEmail,
     'Journal Entry Reminder',
     'Hey there! Just a gentle reminder to make your journal entry for today. Take a moment to reflect and jot down your thoughts.',
   );
 };
-const sendMoodTrackingPrompt = (userEmail) => {
+
+const sendMoodTrackingPrompt = userEmail => {
   sendEmailNotification(
     userEmail,
     'How are you feeling today?',
-    "Don't forget to track your mood today. It helps to see patterns over time and manage your well-being better.",
+    "Don’t forget to track your mood today. It helps to see patterns over time and manage your well-being better.",
   );
 };
+
 const sendCustomNotification = (userEmail, subject, message) => {
   sendEmailNotification(userEmail, subject, message);
 };

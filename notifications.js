@@ -3,47 +3,47 @@ const nodemailer = require('nodemailer');
 
 const { EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASS } = process.env;
 
-const transporter = nodemailer.createTransport({
+const emailTransporter = nodemailer.createTransport({
   host: EMAIL_HOST,
   port: EMAIL_PORT,
-  secure: false,
+  secure: false, // Consider setting this to true if you are using the default port for secure SMTP (465)
   auth: {
     user: EMAIL_USER,
     pass: EMAIL_PASS,
   },
 });
 
-const sendEmailNotification = async (to, subject, text) => {
-  const mailOptions = {
+const sendEmail = async (recipientEmail, emailSubject, emailBody) => {
+  const emailOptions = {
     from: `"MindfulJournalApp" <${EMAIL_USER}>`,
-    to,
-    subject,
-    text,
+    to: recipientEmail,
+    subject: emailSubject,
+    text: emailBody,
   };
   try {
-    await transporter.sendMail(mailOptions);
+    await emailTransporter.sendMail(emailOptions);
     console.log('Email sent successfully');
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('Failed to send email:', error);
   }
 };
 
-const sendJournalReminder = userEmail => {
-  sendEmailNotification(
-    userEmail,
+const remindJournalEntry = recipientEmail => {
+  sendEmail(
+    recipientEmail,
     'Journal Entry Reminder',
     'Hey there! Just a gentle reminder to make your journal entry for today. Take a moment to reflect and jot down your thoughts.',
   );
 };
 
-const sendMoodTrackingPrompt = userEmail => {
-  sendEmailNotification(
-    userEmail,
+const promptMoodTracking = recipientEmail => {
+  sendEmail(
+    recipientEmail,
     'How are you feeling today?',
     "Don’t forget to track your mood today. It helps to see patterns over time and manage your well-being better.",
   );
 };
 
-const sendCustomNotification = (userEmail, subject, message) => {
-  sendEmailNotification(userEmail, subject, message);
+const sendNotificationWithEmail = (recipientEmail, notificationSubject, notificationMessage) => {
+  sendEmail(recipientEmail, notificationSubject, notificationMessage);
 };

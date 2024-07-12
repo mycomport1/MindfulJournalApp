@@ -31,12 +31,12 @@ app.post('/register', async (req, res) => {
 app.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
-    const user = await User.findOne({ username });
+    const existingUser = await User.findOne({ username });
 
-    if (user && await bcrypt.compare(password, user.password)) {
-      const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    if (existingUser && await bcrypt.compare(password, existing TEXStUser.password)) {
+      const accessToken = jwt.sign({ userId: existingUser._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-      res.status(200).json({ token });
+      res.status(200).json({ accessToken });
     } else {
       res.status(401).send("Authentication failed");
     }
@@ -61,10 +61,10 @@ app.get('/user/:id', async (req, res) => {
 app.put('/user/:id', async (req, res) => {
   try {
     const { username, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const userToUpdate = await User.findByIdAndUpdate(req.params.id, { username, password: hashedRecord }, { new: true });
+    const newHashedPassword = await bcrypt.hash(password, 10);
+    const updatedUser = await User.findByIdAndUpdate(req.params.id, { username, password: newHashedPassword }, { new: true });
 
-    if(userToUpdate) {
+    if(updatedUser) {
       res.status(200).send("User updated successfully");
     } else {
       res.status(404).send("User not found");

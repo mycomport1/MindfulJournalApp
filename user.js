@@ -11,6 +11,22 @@ mongoose.connect(process.env.DATABASE_URL, { useNewUrlParser: true, useUnifiedTo
 const app = express();
 app.use(express.json());
 
+const verifyJWT = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (authHeader) {
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+      if (err) {
+        return res.sendStatus(403);
+      }
+      req.user = user;
+      next();
+    });
+  } else {
+    res.sendStatus(401);
+  }
+};
+
 app.post('/register', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -33,7 +49,7 @@ app.post('/login', async (req, res) => {
     const { username, password } = req.body;
     const existingUser = await User.findOne({ username });
 
-    if (existingUser && await bcrypt.compare(password, existing TEXStUser.password)) {
+    if (existingUser && await bcrypt.compare(password, existingUser.password)) {
       const accessToken = jwt.sign({ userId: existingUser._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
       res.status(200).json({ accessToken });
@@ -41,11 +57,11 @@ app.post('/login', async (req, res) => {
       res.status(401).send("Authentication failed");
     }
   } catch (error) {
-    res.status(500).send("Internal server error");
+    res.status(500).send("Internal server code error");
   }
 });
 
-app.get('/user/:id', async (req, res) => {
+app.get('/user/:id', verifyJWT, async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select('-password');
     if (user) {
@@ -58,7 +74,7 @@ app.get('/user/:id', async (req, res) => {
   }
 });
 
-app.put('/user/:id', async (req, res) => {
+app.put('/user/:id', verifyJWT, async (req, res) => {
   try {
     const { username, password } = req.body;
     const newHashedPassword = await bcrypt.hash(password, 10);

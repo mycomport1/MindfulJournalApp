@@ -9,6 +9,15 @@
     <header>
         <h1>Welcome to MindfulJournalApp</h1>
     </header>
+    <nav>
+        <ul>
+            <li><a href="#user-auth">Register/Login</a></li>
+            <li><a href="#journal-entry">New Entry</a></li>
+            <li><a href="#mood-tracking">Mood Tracking</a></li>
+            <li><a href="#view-entries">View Entries</a></li>
+            <li><a href="#author-page">About the Author</a></li>
+        </ul>
+    </nav>
     <section id="user-auth">
         <h2>User Registration/Login</h2>
         <form id="registration-form">
@@ -35,7 +44,7 @@
         <form id="journal-form">
             <label for="entry-date">Date:</label>
             <input type="date" id="entry-date" name="date" required>
-            <label for="entry-content">Entry:</label>
+            <label for="entry-content">Entry:</span></label>
             <textarea id="entry-content" name="content" required></textarea>
             <button type="submit">Add Entry</button>
         </form>
@@ -54,6 +63,16 @@
         <h2>View Past Entries</h2>
         <div id="entries-display">
             <p>Entries will appear here after you add them.</p>
+        </div>
+    </section>
+    <section id="author-page">
+        <h2>About the Author</h2>
+        <p>Welcome to the author page! Here you'll find information about the creator of the MindfulJournalApp.</p>
+        <div>
+            <p>Your name here - I am a passionate software developer who created the MindfulJournalApp to help
+            people track their moods and reflect on their daily lives. I believe in the power of mindfulness
+            and journaling as tools for personal growth and well-being.</p>
+            <p>For more about me and my projects, visit <a href="http://yourwebsite.com" target="_blank">my website</a>.</p>
         </div>
     </section>
 </body>
